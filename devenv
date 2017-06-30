@@ -61,12 +61,13 @@ if [ $1 == "install" ]; then
 	fi
 	if [[ "$toinstall" == *"gccx"* ]]; then
 		echo -n "Installing GCC and other binutils... "
-		apt-get -qq -y build-essential
+		apt-get -qq -y install build-essential > /dev/null
 		echo "Done!"
 	fi
 	if [[ "$toinstall" == *"util"* ]]; then
 		echo -n "Installing Various Utils... "
-		echo "Nothing to do yet"
+		apt-get -qq -y install git curl wget
+		echo "Done!"
 	fi
 	if [[ "$toinstall" == *"qemu"* ]]; then
 		echo -n "Installing Qemu... "
@@ -78,7 +79,7 @@ if [ $1 == "install" ]; then
 			echo -n "Patching initramfs on Google Compute Engine... "
 			echo -e "#$(cat /etc/initramfs-tools/conf.d/99-gce.conf)" > /etc/initramfs-tools/conf.d/99-gce.conf
 		fi
-		apt-get -qq -y install linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates curl software-properties-common
+		apt-get -qq -y install linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates curl software-properties-common > /dev/null
 		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - > /dev/null
 		add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /dev/null
 		apt-get -qq update > /dev/null
