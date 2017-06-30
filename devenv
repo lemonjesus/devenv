@@ -1,0 +1,108 @@
+#!/bin/bash
+
+echo "Tucker's Dev Environment"
+
+if [[ $# -eq 0 ]] || [ $1 == "help" ]; then
+	echo
+	echo 'Help:'
+	echo "Command: sudo $0 install [parts...]"
+	echo 'Installs the entire dev environment or just the parts of the environment.'
+	echo 'Parts can be:'
+	echo '  java - Installs the Java 8 JDK'
+	echo '  node - Installs the latest Node and NPM packages'
+	echo '  lamp - Installs the latest LAMP Stack'
+	echo '  imgk - Installs ImageMagick'
+	echo '  gccx - Installs GCC, Make, and all of the other build utils'
+	echo '  util - Installs various tools that are not included in the other parts'
+	echo 'There are some parts that are not installed by default and must be manually installed:'
+	echo '  qemu - Installs the Qemu suite of virtual machines'
+	echo '  dock - Installs Docker CE and the linux extras it needs'
+	echo
+	echo "Command: sudo $0 install-self"
+	echo 'Copies this file to /usr/bin to be run globally'
+	echo
+	echo "Command: $0 git-config"
+	echo 'Configure git to use my name and email'
+	exit 1
+fi
+
+if [ $1 == "install" ]; then
+	if [ "$EUID" -ne 0 ]
+		then echo "You need to run this as root!"
+		exit 2
+	fi
+	toinstall=${@:2}
+	if [[ $# -lt 2 ]]; then
+		toinstall="java node lamp imgk gccx util"
+	fi
+	echo -n "Updating apt-get... "
+	apt-get -qq update > /dev/null
+	echo "Done!"
+	if [[ "$toinstall" == *"java"* ]]; then
+		echo -n "Installing the Java 8 JDK... "
+		apt-get -qq -y install default-jdk > /dev/null
+		echo "Done!"
+	fi
+	if [[ "$toinstall" == *"node"* ]]; then
+		echo -n "Installing the latest NodeJS and NPM packages... "
+		curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash - > /dev/null
+		echo "Done!"
+	fi
+	if [[ "$toinstall" == *"lamp"* ]]; then
+		echo -n "Installing the latest LAMP Stack... "
+		apt-get -qq -y install lamp-server^ > /dev/null
+		echo "Done!"
+	fi
+	if [[ "$toinstall" == *"imgk"* ]]; then
+		echo -n "Installing ImageMagick... "
+		apt-get -qq -y install imagemagick > /dev/null
+		echo "Done!"
+	fi
+	if [[ "$toinstall" == *"gccx"* ]]; then
+		echo -n "Installing GCC and other binutils... "
+		apt-get -qq -y build-essential
+		echo "Done!"
+	fi
+	if [[ "$toinstall" == *"util"* ]]; then
+		echo -n "Installing Various Utils... "
+		echo "Nothing to do yet"
+	fi
+	if [[ "$toinstall" == *"qemu"* ]]; then
+		echo -n "Installing Qemu... "
+		apt-get -qq -y install qemu > /dev/null
+	fi
+	if [[ "$toinstall" == *"dock"* ]]; then
+		echo -n "Installing Docker CE... "
+		if [ -f /etc/initramfs-tools/conf.d/99-gce.conf ]; then
+			echo -n "Patching initramfs on Google Compute Engine... "
+			echo -e "#$(cat /etc/initramfs-tools/conf.d/99-gce.conf)" > /etc/initramfs-tools/conf.d/99-gce.conf
+		fi
+		apt-get -qq -y install linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates curl software-properties-common
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - > /dev/null
+		add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /dev/null
+		apt-get -qq update
+		apt-get -qq -y install docker-ce
+		echo "Done"
+	fi
+	exit 0
+fi
+
+if [ $1 == "install-self" ]; then
+	if [ "$EUID" -ne 0 ]
+		then echo "You need to run this as root!"
+		exit 2
+	fi
+	cp $0 /usr/bin/
+	exit 0
+fi
+
+if [ $1 == "git-config" ]; then
+	echo -n "Configuring Git... "
+	git config --global user.email "osmiumusa@gmail.com"
+	git config --global user.name "Tucker Osman"
+	echo "Done!"
+	exit 0
+fi
+
+echo "I have no idea what $1 means"
+exit 255
