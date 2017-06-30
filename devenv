@@ -46,11 +46,12 @@ if [ $1 == "install" ]; then
 	if [[ "$toinstall" == *"node"* ]]; then
 		echo -n "Installing the latest NodeJS and NPM packages... "
 		curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash - > /dev/null
+		apt-get -qq -y install nodejs > /dev/null
 		echo "Done!"
 	fi
 	if [[ "$toinstall" == *"lamp"* ]]; then
 		echo -n "Installing the latest LAMP Stack... "
-		apt-get -qq -y install lamp-server^ > /dev/null
+		apt-get -qq -y install lamp-server^
 		echo "Done!"
 	fi
 	if [[ "$toinstall" == *"imgk"* ]]; then
@@ -80,8 +81,8 @@ if [ $1 == "install" ]; then
 		apt-get -qq -y install linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates curl software-properties-common
 		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - > /dev/null
 		add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /dev/null
-		apt-get -qq update
-		apt-get -qq -y install docker-ce
+		apt-get -qq update > /dev/null
+		apt-get -qq -y install docker-ce > /dev/null
 		echo "Done"
 	fi
 	exit 0
@@ -92,7 +93,9 @@ if [ $1 == "install-self" ]; then
 		then echo "You need to run this as root!"
 		exit 2
 	fi
+	echo -n "Installing to /usr/bin... "
 	cp $0 /usr/bin/
+	echo "Done!"
 	exit 0
 fi
 
